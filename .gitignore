@@ -1,0 +1,118 @@
+# =====================================================================
+# Git Ignore Configuration for Neural Style Transfer (AdaIN) Project
+# =====================================================================
+
+# ---------------------------------------------------------------------
+# Python & Bytecode
+# ---------------------------------------------------------------------
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# ---------------------------------------------------------------------
+# Virtual Environments
+# ---------------------------------------------------------------------
+venv/
+.venv/
+env/
+ENV/
+env.bak/
+venv.bak/
+conda/
+.conda/
+
+# ---------------------------------------------------------------------
+# Jupyter Notebook Checkpoints
+# ---------------------------------------------------------------------
+.ipynb_checkpoints/
+*/.ipynb_checkpoints/*
+
+# ---------------------------------------------------------------------
+# IDEs & Code Editors
+# ---------------------------------------------------------------------
+.idea/
+*.swp
+*.swo
+*~
+# VS Code (preserve settings.json if needed, ignore user/workspace state)
+.vscode/*
+!.vscode/settings.json
+
+# ---------------------------------------------------------------------
+# Operating System Junk
+# ---------------------------------------------------------------------
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+desktop.ini
+
+# ---------------------------------------------------------------------
+# Web App Dynamic Uploads & Temporary Outputs
+# (Ignore uploaded images during local testing, keep the directory structure)
+# ---------------------------------------------------------------------
+static/uploads/*
+!static/uploads/.gitkeep
+
+# ---------------------------------------------------------------------
+# Large Model Weights & Checkpoints
+# Note: vgg_normalised.pth (~76MB) and decoder_final.pth (~14MB) are tracked
+# in this repo so anyone cloning can run real-time inference immediately.
+# ---------------------------------------------------------------------
+*.ckpt
+*.bin
+*.h5
+
+# Ignore generated training iteration checkpoints & large sample grids
+experiment/**/sample_iter_*.png
+experiment/**/optimizer_*.pth
+experiment/**/checkpoint_*.pth
+
+# Uncomment the line below if you prefer to host decoder_final.pth externally:
+# *.pth
+
+# ---------------------------------------------------------------------
+# Large Datasets & Bulk Downloads
+# (Preserve curated demo/starter images in root folders, ignore massive train sets)
+# ---------------------------------------------------------------------
+content_data/train_*/
+content_data/*/
+style_data/commons_*.jpg
+style_data/commons_*.png
+style_data/commons_sources.csv
+
+# Compressed Archives
+*.zip
+*.tar
+*.tar.gz
+*.tgz
+*.rar
+*.7z
+
+# ---------------------------------------------------------------------
+# Logs & Secret Keys
+# ---------------------------------------------------------------------
+*.log
+.env
+.env.*
+secrets.json
