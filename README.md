@@ -3,6 +3,7 @@
 # 🎨 StyleForge AI · Neural Style Transfer
 ### *Bridging Human Creativity & Deep Learning with Real-Time Arbitrary Style Transfer*
 
+[![Python](https://img.shields.io/badge/Python-3.10%20%7C%203.11%20%7C%203.12-3776AB?style=for-the-badge&logo=python&logoColor=white)](https://www.python.org/)
 [![PyTorch](https://img.shields.io/badge/PyTorch-2.2+-EE4C2C?style=for-the-badge&logo=pytorch&logoColor=white)](https://pytorch.org/)
 [![Flask](https://img.shields.io/badge/Flask-3.1+-000000?style=for-the-badge&logo=flask&logoColor=white)](https://flask.palletsprojects.com/)
 [![Torchvision](https://img.shields.io/badge/Torchvision-0.17+-EE4C2C?style=for-the-badge&logo=pytorch&logoColor=white)](https://pytorch.org/vision/stable/index.html)
@@ -213,34 +214,73 @@ http://127.0.0.1:5000/
 
 ## 🏋️ Training Your Own Decoder
 
-If you would like to train the decoder on your own custom collection of photos and artwork, you can use `train.py`:
+If you would like to train the decoder on your own custom collection of photos and artwork, a **2-stage training curriculum** is strongly recommended for the best visual quality and fastest convergence:
 
+### 🌟 Recommended 2-Stage Training Curriculum
+
+| Stage | Image Size (`--final_size`) | Style Weight (`--style_weight`) | Content Weight (`--content_weight`) | Recommended Epochs | Focus & Purpose |
+| :--- | :---: | :---: | :---: | :---: | :--- |
+| **Stage 1 (Coarse)** | **`256`** | **`5.0`** | `1.0` | **180 – 200** | Rapid learning of global shapes, basic color harmony, and robust feature reconstruction without severe artifacts. |
+| **Stage 2 (Refinement)** | **`512`** | **`10.0`** | `1.0` | **80 – 100** | Fine detail refinement, capturing rich painterly brushstrokes, sharp textures, and high-frequency artistic patterns. |
+
+---
+
+#### 🔹 Stage 1: Coarse Training (256px & Style Weight = 5.0)
+Train the initial decoder at 256px resolution for ~180 to 200 epochs:
 ```bash
 python train.py \
   --content_dir ./content_data/train_3 \
   --style_dir ./style_data \
   --vgg ./vgg_normalised.pth \
-  --experiment my_custom_experiment \
-  --batch_size 8 \
-  --epochs 100 \
+  --experiment stage1_256 \
+  --final_size 256 \
+  --content_size 512 \
+  --style_size 512 \
+  --batch_size 16 \
+  --epochs 200 \
   --lr 1e-4 \
+  --lr_decay 5e-5 \
   --content_weight 1.0 \
   --style_weight 5.0
 ```
 
-### Key Training Options:
-| Parameter | Default | Purpose |
-| :--- | :---: | :--- |
-| `--content_dir` | Required | Path to the directory containing content training images (e.g., COCO). |
-| `--style_dir` | Required | Path to the directory containing style training images (e.g., WikiArt). |
-| `--vgg` | `vgg_normalised.pth` | Path to the fixed VGG encoder weights. |
-| `--content_weight`| `1.0` | Weight assigned to Euclidean content loss $\mathcal{L}_c$. |
-| `--style_weight` | `5.0` | Weight assigned to moment-matching style loss $\mathcal{L}_s$. |
-| `--batch_size` | `4` | Number of image pairs per training step. |
-| `--epochs` | `1` | Number of full passes over the content loader. |
-| `--lr` | `1e-4` | Learning rate (Adam optimizer). |
-| `--lr_decay` | `5e-5` | Learning rate decay per step. |
-| `--crop` | `True` | Randomly crops images to uniform size for stable mini-batch training. |
+#### 🔹 Stage 2: High-Resolution Refinement (512px & Style Weight = 10.0)
+Resume training from your Stage 1 checkpoint at 512px resolution with the style weight increased to 10.0 for ~80 to 100 epochs:
+```bash
+python train.py \
+  --content_dir ./content_data/train_3 \
+  --style_dir ./style_data \
+  --vgg ./vgg_normalised.pth \
+  --experiment stage2_512 \
+  --final_size 512 \
+  --content_size 512 \
+  --style_size 512 \
+  --batch_size 8 \
+  --epochs 100 \
+  --lr 5e-5 \
+  --content_weight 1.0 \
+  --style_weight 10.0 \
+  --resume \
+  --decoder_path ./experiment/stage1_256/decoder_iter_200.pth
+```
+
+---
+
+### Key Training Options Reference:
+| Parameter | Default | Recommended Value | Purpose |
+| :--- | :---: | :---: | :--- |
+| `--content_dir` | Required | `./content_data` | Path to content training images (e.g., COCO train2017). |
+| `--style_dir` | Required | `./style_data` | Path to style training images (e.g., WikiArt paintings). |
+| `--vgg` | `vgg_normalised.pth` | `./vgg_normalised.pth` | Path to the fixed VGG-19 encoder weights. |
+| `--final_size` | `256` | `256` (Stage 1) / `512` (Stage 2) | Output crop resolution for training. |
+| `--content_weight`| `1.0` | `1.0` | Weight assigned to Euclidean content loss $\mathcal{L}_c$. |
+| `--style_weight` | `5.0` | `5.0` (Stage 1) / `10.0` (Stage 2) | Weight assigned to moment-matching style loss $\mathcal{L}_s$. |
+| `--batch_size` | `4` | `8` – `16` | Number of image pairs per training step. |
+| `--epochs` | `1` | `180–200` (Stage 1) / `80–100` (Stage 2) | Number of full passes over the content dataset. |
+| `--lr` | `1e-4` | `1e-4` (Stage 1) / `5e-5` (Stage 2) | Learning rate (Adam optimizer). |
+| `--lr_decay` | `5e-5` | `5e-5` | Learning rate decay per training step. |
+| `--resume` | `False` | `True` for Stage 2 | Enables resuming training from a previous checkpoint. |
+| `--decoder_path` | `None` | Path to Stage 1 `.pth` | Decoder checkpoint path to load when resuming. |
 
 Training checkpoints, intermediate generated sample grids (`sample_iter_*.png`), and run arguments are automatically saved in `experiment/<experiment_name>/`.
 
